@@ -1,72 +1,84 @@
-#------------------------------------------------------------------------------
-# Hands-On Lab: Data Engineering with Snowpark
-# Script:       02_load_raw.py
-# Author:       Jeremiah Hansen, Caleb Baechtold
-# Last Updated: 1/9/2023
-#------------------------------------------------------------------------------
-
-import time
+def transfer_tables(session):
+    database_src = "OAG_FLIGHT_STATUS_DATA_SAMPLE"
+    schema_src = "PUBLIC"
+    database_dest = "Flight_DB"
+    schema_dest = "FLIGHT_STATUS_DATA"
+# Import necessary modules from Snowpark
 from snowflake.snowpark import Session
-#import snowflake.snowpark.types as T
-#import snowflake.snowpark.functions as F
+from snowflake.snowpark import DataFrame
 
+def copy_table_between_schemas_flight_status(session):
+    # Define source database, schema, and table
+    src_database = "OAG_FLIGHT_STATUS_DATA_SAMPLE"
+    src_schema = "PUBLIC"
+    src_table = "FLIGHT_STATUS_LATEST_SAMPLE"
 
-POS_TABLES = ['country', 'franchise', 'location', 'menu', 'truck', 'order_header', 'order_detail']
-CUSTOMER_TABLES = ['customer_loyalty']
-TABLE_DICT = {
-    "pos": {"schema": "RAW_POS", "tables": POS_TABLES},
-    "customer": {"schema": "RAW_CUSTOMER", "tables": CUSTOMER_TABLES}
-}
+    # Define destination database, schema, and table
+    dest_database = "Flight_DB"
+    dest_schema = "FLIGHT_STATUS"
+    dest_table = "FLIGHT_STATUS_DATA"
 
-# SNOWFLAKE ADVANTAGE: Schema detection
-# SNOWFLAKE ADVANTAGE: Data ingestion with COPY
-# SNOWFLAKE ADVANTAGE: Snowflake Tables (not file-based)
+    # Set the warehouse size to XLARGE
+    session.sql("ALTER WAREHOUSE Flight_WH SET WAREHOUSE_SIZE = XLARGE WAIT_FOR_COMPLETION = TRUE").collect()
 
-def load_raw_table(session, tname=None, s3dir=None, year=None, schema=None):
-    session.use_schema(schema)
-    if year is None:
-        location = "@external.frostbyte_raw_stage/{}/{}".format(s3dir, tname)
-    else:
-        print('\tLoading year {}'.format(year)) 
-        location = "@external.frostbyte_raw_stage/{}/{}/year={}".format(s3dir, tname, year)
+    # Create a DataFrame for the source table
+    source_dataframe = session.table(f'{src_database}.{src_schema}.{src_table}')
+
+    # Write the DataFrame to the destination table
+    source_dataframe.write.mode("overwrite").saveAsTable(f'{dest_database}.{dest_schema}.{dest_table}')
+
+    # Set the warehouse size back to XSMALL
+    session.sql("ALTER WAREHOUSE Flight_WH SET WAREHOUSE_SIZE = XSMALL").collect()
+
+def copy_table_between_schemas_flight_emission(session):
+        # Define source database, schema, and table
+    src_database = "OAG_GLOBAL_CONNECTIONS_DATA_SAMPLE"
+    src_schema = "PUBLIC"
+    src_table = "GLOBAL_SINGLE_CONNECTIONS_SAMPLE"
+
+    # Define destination database, schema, and table
+    dest_database = "Flight_DB"
+    dest_schema = "FLIGHT_GLOBAL_CONNECTION"
+    dest_table = "FLIGHT_GLOBAL_CONNECTION_DATA"
+
+    session.sql("ALTER WAREHOUSE Flight_WH SET WAREHOUSE_SIZE = XLARGE WAIT_FOR_COMPLETION = TRUE").collect()
+
+    # Create a DataFrame for the source table
+    source_dataframe = session.table(f'{src_database}.{src_schema}.{src_table}')
+
+    # Write the DataFrame to the destination table
+    source_dataframe.write.mode("overwrite").saveAsTable(f'{dest_database}.{dest_schema}.{dest_table}')
+
+    # Set the warehouse size back to XSMALL
+    session.sql("ALTER WAREHOUSE Flight_WH SET WAREHOUSE_SIZE = XSMALL").collect()   
+
+def copy_table_between_schemas_flight_global_connect(session):
+
+    src_database = "OAG_FLIGHT_EMISSIONS_DATA_SAMPLE"
+    src_schema = "PUBLIC"
+    src_table = "ESTIMATED_EMISSIONS_STATUS_SAMPLE"
+
+    # Define destination database, schema, and table
+    dest_database = "Flight_DB"
+    dest_schema = "FLIGHT_EMISSION"
+    dest_table = "FLIGHT_EMISSION_DATA"
     
-    # we can infer schema using the parquet read option
-    df = session.read.option("compression", "snappy") \
-                            .parquet(location)
-    df.copy_into_table("{}".format(tname))
+    session.sql("ALTER WAREHOUSE Flight_WH SET WAREHOUSE_SIZE = XLARGE WAIT_FOR_COMPLETION = TRUE").collect()
 
-# SNOWFLAKE ADVANTAGE: Warehouse elasticity (dynamic scaling)
+    # Create a DataFrame for the source table
+    source_dataframe = session.table(f'{src_database}.{src_schema}.{src_table}')
 
-def load_all_raw_tables(session):
-    _ = session.sql("ALTER WAREHOUSE HOL_WH SET WAREHOUSE_SIZE = XLARGE WAIT_FOR_COMPLETION = TRUE").collect()
+    # Write the DataFrame to the destination table
+    source_dataframe.write.mode("overwrite").saveAsTable(f'{dest_database}.{dest_schema}.{dest_table}')
 
-    for s3dir, data in TABLE_DICT.items():
-        tnames = data['tables']
-        schema = data['schema']
-        for tname in tnames:
-            print("Loading {}".format(tname))
-            # Only load the first 3 years of data for the order tables at this point
-            # We will load the 2022 data later in the lab
-            if tname in ['order_header', 'order_detail']:
-                for year in ['2019', '2020', '2021']:
-                    load_raw_table(session, tname=tname, s3dir=s3dir, year=year, schema=schema)
-            else:
-                load_raw_table(session, tname=tname, s3dir=s3dir, schema=schema)
+    # Set the warehouse size back to XSMALL
+    session.sql("ALTER WAREHOUSE Flight_WH SET WAREHOUSE_SIZE = XSMALL").collect()  
 
-    _ = session.sql("ALTER WAREHOUSE HOL_WH SET WAREHOUSE_SIZE = XSMALL").collect()
-
-def validate_raw_tables(session):
-    # check column names from the inferred schema
-    for tname in POS_TABLES:
-        print('{}: \n\t{}\n'.format(tname, session.table('RAW_POS.{}'.format(tname)).columns))
-
-    for tname in CUSTOMER_TABLES:
-        print('{}: \n\t{}\n'.format(tname, session.table('RAW_CUSTOMER.{}'.format(tname)).columns))
+# Main function to execute the script
+def main():
+    # Create a Snowpark session
 
 
-# For local debugging
-if __name__ == "__main__":
-    # Add the utils package to our path and import the snowpark_utils function
     import os, sys
     current_dir = os.getcwd()
     parent_dir = os.path.dirname(current_dir)
@@ -75,7 +87,14 @@ if __name__ == "__main__":
     from utils import snowpark_utils
     session = snowpark_utils.get_snowpark_session()
 
-    load_all_raw_tables(session)
-#    validate_raw_tables(session)
+    # Call the function to copy the table
+    copy_table_between_schemas_flight_status(session)
+    copy_table_between_schemas_flight_emission(session)
+    copy_table_between_schemas_flight_global_connect(session)
 
+    # Close the Snowpark session
     session.close()
+
+# Execute the main function if the script is run
+if __name__ == "__main__":
+    main()
