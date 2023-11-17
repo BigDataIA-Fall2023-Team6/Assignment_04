@@ -97,20 +97,24 @@ if Query_input:
         schema=os.environ.get("SNOWFLAKE_SCHEMA"),
     )
     snowflake_documents = snowflake_loader.load()
+    page_contents = [doc.page_content for doc in snowflake_documents]
 
-    def format_document_content(page_content):
-        formatted_content = ""
-        lines = page_content.split('\n')
-        for line in lines:
-            key, value = line.split(':', 1)  # Split only on the first colon
-            value = value.strip() if value else "N/A"
-            formatted_content += f"{key}: {value}\n"
-        return formatted_content
+    st.dataframe(page_contents)
+
+#     def format_document_content(page_content):
+#         formatted_content = ""
+#         lines = page_content.split('\n')
+#         for line in lines:
+#             key, value = line.split(':', 1)  # Split only on the first colon
+#             value = value.strip() if value else "N/A"
+#             formatted_content += f"{key}: {value}\n"
+#         return formatted_content
     
-# Use an expander for each document
-    for i, doc in enumerate(snowflake_documents):
-        with st.expander(f"Document {i}"):
-            formatted_content = format_document_content(doc.page_content)
-            st.text(formatted_content)
+# # Use an expander for each document
+#     for i, doc in enumerate(snowflake_documents):
+#         with st.expander(f"Document {i}"):
+#             formatted_content = format_document_content(doc.page_content)
+#             st.text(formatted_content)
+
 
 
