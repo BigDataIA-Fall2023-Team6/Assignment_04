@@ -36,15 +36,6 @@ def comprehensive_Flight_Efficiency_view(session):
     # Create the view
     result_df.create_or_replace_view("comprehensive_flight_efficiency")
 
-
-
-
-
-
-
-
-
-
 # For local debugging
 if __name__ == "__main__":
     import os, sys
