@@ -1,0 +1,21 @@
+# SnowSQL Configuration
+snowsql_config_path = "~/.snowsql/config"
+snowsql_connection_name = "dev"
+
+# UDF Configuration
+[default]
+input_parameters = "arrival_airport_name STRING, departure_airport_name STRING"
+return_type = "TABLE"
+file = "app.zip"
+name = "get_emission_data_for_flights_between_airports"
+handler = "app.main"
+execute_as_caller = true
+
+# Snowflake Connection Configuration
+[dev]
+database = "Flight_DB"
+schema = "FLIGHT_ANALYTICS"
+warehouse = "Flight_WH"
+role = "Flight_Role"
+overwrite = true
+
