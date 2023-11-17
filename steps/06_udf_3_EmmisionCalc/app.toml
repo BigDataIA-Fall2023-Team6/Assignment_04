@@ -1,0 +1,17 @@
+snowsql_config_path = "~/.snowsql/config"
+snowsql_connection_name = "dev"
+
+[default]
+input_parameters = "(departure_airport_des VARCHAR, arrival_airport_des VARCHAR)"
+return_type = "TABLE"
+file = "app.zip"
+name = "get_flight_details"
+handler = "app.main"
+execute_as_caller = true
+
+[dev]
+database = "Flight_DB"
+schema = "ANALYTICS"
+warehouse = "Flight_WH"
+role = "Flight_ROLE"
+overwrite = true
