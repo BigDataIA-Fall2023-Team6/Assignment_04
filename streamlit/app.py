@@ -2,10 +2,9 @@ import os
 import openai
 from sqlalchemy import create_engine
 import streamlit as st
-from langchain.chains import LLMChain  
+from langchain.chains import LLMChain
 from dotenv import load_dotenv
 from langchain.document_loaders import SnowflakeLoader
-
 from snowflake.snowpark import Session
 from langchain.chains import create_sql_query_chain
 from langchain.llms import OpenAI
@@ -107,14 +106,11 @@ if user_input:
         st.session_state['chat_history'].append("User confirmed the query.")
 
         # Process the confirmed query here        
-
     if wrong:
         corrected_sql = st.text_input("Correct the SQL query:")
         submit_correction = st.button("Submit Correction")
         if submit_correction:
             st.session_state['chat_history'].append(f"User corrected SQL: {corrected_sql}")
-
-
             QUERY = corrected_sql
             snowflake_loader = SnowflakeLoader(
                 query=QUERY,
