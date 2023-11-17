@@ -2,16 +2,16 @@ snowsql_config_path = "~/.snowsql/config"
 snowsql_connection_name = "dev"
 
 [default]
-input_parameters = "(temp_f float)"
-return_type = "float"
-file = "app.zip"
-name = "fahrenheit_to_celsius_udf"
-handler = "app.main"
+input_parameters = "(departure_airport_des VARCHAR, arrival_airport_des VARCHAR)"
+return_type = "TABLE"
+file = "test1.zip"
+name = "get_flight_details"
+handler = "test1.main"
 execute_as_caller = true
 
 [dev]
-database = "HOL_DB"
+database = "Flight_DB"
 schema = "ANALYTICS"
-warehouse = "HOL_WH"
-role = "HOL_ROLE"
+warehouse = "Flight_WH"
+role = "Flight_ROLE"
 overwrite = true

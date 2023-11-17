@@ -65,3 +65,5 @@ CREATE OR REPLACE SCHEMA ANALYTICS;
 --DROP ROLE Flight_ROLE;
 
 --Drop the weather share
+
+SELECT * FROM TABLE(ANALYTICS.get_flight_details('BOS','DFW'));
