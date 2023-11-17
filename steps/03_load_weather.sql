@@ -9,8 +9,8 @@ Last Updated: 1/9/2023
 -- SNOWFLAKE ADVANTAGE: Visual Studio Code Snowflake native extension (PrPr, Git integration)
 
 
-USE ROLE HOL_ROLE;
-USE WAREHOUSE HOL_WH;
+USE ROLE FLIGHT_ROLE;
+USE WAREHOUSE FLIGHT_WH;
 
 
 -- ----------------------------------------------------------------------------
@@ -57,4 +57,4 @@ GRANT IMPORTED PRIVILEGES ON DATABASE FROSTBYTE_WEATHERSOURCE TO ROLE HOL_ROLE;
 
 
 -- Let's look at the data - same 3-part naming convention as any other table
-SELECT * FROM FROSTBYTE_WEATHERSOURCE.ONPOINT_ID.POSTAL_CODES LIMIT 100;
+SELECT * FROM FLIGHT_DB.FLIGHT_STATUS.FLIGHT_STATUS_DATA  LIMIT 100;
