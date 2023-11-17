@@ -20,6 +20,9 @@ openai.api_key = os.environ.get("API_KEY")
 if 'chat_history' not in st.session_state:
     st.session_state['chat_history'] = []
 
+if 'current_query' not in st.session_state:
+    st.session_state['current_query'] = ""
+
 st.title("Text to SQL Converter using Snowflake")
 conn = st.connection("snowflake")
 
@@ -43,6 +46,10 @@ elif genre == 'FLIGHT_EMISSION_DATA':
     st.write(df2)
 
 user_input = st.text_input("Enter your question:")
+
+# Display chat history
+for entry in st.session_state['chat_history'][::-1]:
+    st.text(entry)
 
 OPENAI_API_KEY = os.environ.get("API_KEY")
 snowflake_account = os.environ.get("SNOWFLAKE_ACCOUNT")
@@ -81,49 +88,79 @@ if user_input:
 
     sql_query = database_chain.invoke({"question": prompt})
 
-    st.session_state['chat_history'].append(f"User: {prompt}")
-    st.session_state['chat_history'].append(f"Generated SQL: {sql_query}")
+    if prompt != st.session_state['current_query']:
+        st.session_state['current_query'] = prompt
+        sql_query = database_chain.invoke({"question": prompt})
+
+        st.session_state['chat_history'].append(f"User: {prompt}")
+        st.session_state['chat_history'].append(f"Generated SQL: {sql_query}")
+
+        # Show the generated SQL query and ask for confirmation
+        st.write(sql_query)
 
     # Show the generated SQL query and ask for confirmation
-    st.write(sql_query)
+    # st.write(sql_query)
     confirm = st.button("Confirm")
     wrong = st.button("Wrong")
 
     if confirm:
         st.session_state['chat_history'].append("User confirmed the query.")
-        # Process the confirmed query here
+
+        # Process the confirmed query here        
 
     if wrong:
-        corrected_sql = st.text_area("Correct the SQL query:")
+        corrected_sql = st.text_input("Correct the SQL query:")
         submit_correction = st.button("Submit Correction")
         if submit_correction:
             st.session_state['chat_history'].append(f"User corrected SQL: {corrected_sql}")
+
+
+            QUERY = corrected_sql
+            snowflake_loader = SnowflakeLoader(
+                query=QUERY,
+                account = os.environ.get("SNOWFLAKE_ACCOUNT"),
+                user= os.environ.get("SNOWFLAKE_USER"),
+                password=os.environ.get("SNOWFLAKE_PASS"),
+                role=os.environ.get("SNOWFLAKE_ROLE"),
+                warehouse=os.environ.get("SNOWFLAKE_WAREHOUSE"),
+                database=os.environ.get("SNOWFLAKE_DATABASE"),
+                schema=os.environ.get("SNOWFLAKE_SCHEMA"),
+            )
+            try:
+                snowflake_documents = snowflake_loader.load()
+                page_contents = [doc.page_content for doc in snowflake_documents]
+
+                st.dataframe(page_contents)
+            except Exception as e:
+            # Handle any errors that occur during data loading
+                st.error("An error occurred: Seems like the Query is incorrect. Please Review the query and Check the column names and try again.")
+
             # Process the corrected query here
 
-# Display chat history
-for entry in st.session_state['chat_history']:
-    st.text(entry)
 
-################### Working Query to Query the Database
-Query_input = st.text_input("Enter your final query:")
+################### Working Query to Query the Database ###########################################################
+    Query_input = st.text_input("Enter your final query:")
 
-if Query_input:
-    QUERY = Query_input
-    snowflake_loader = SnowflakeLoader(
-        query=QUERY,
-        account = os.environ.get("SNOWFLAKE_ACCOUNT"),
-        user= os.environ.get("SNOWFLAKE_USER"),
-        password=os.environ.get("SNOWFLAKE_PASS"),
-        role=os.environ.get("SNOWFLAKE_ROLE"),
-        warehouse=os.environ.get("SNOWFLAKE_WAREHOUSE"),
-        database=os.environ.get("SNOWFLAKE_DATABASE"),
-        schema=os.environ.get("SNOWFLAKE_SCHEMA"),
-    )
-    snowflake_documents = snowflake_loader.load()
-    page_contents = [doc.page_content for doc in snowflake_documents]
+    if Query_input:
+        QUERY = Query_input
+        snowflake_loader = SnowflakeLoader(
+            query=QUERY,
+            account = os.environ.get("SNOWFLAKE_ACCOUNT"),
+            user= os.environ.get("SNOWFLAKE_USER"),
+            password=os.environ.get("SNOWFLAKE_PASS"),
+            role=os.environ.get("SNOWFLAKE_ROLE"),
+            warehouse=os.environ.get("SNOWFLAKE_WAREHOUSE"),
+            database=os.environ.get("SNOWFLAKE_DATABASE"),
+            schema=os.environ.get("SNOWFLAKE_SCHEMA"),
+        )
+        try:
+            snowflake_documents = snowflake_loader.load()
+            page_contents = [doc.page_content for doc in snowflake_documents]
 
-    st.dataframe(page_contents)
-
+            st.dataframe(page_contents)
+        except Exception as e:
+        # Handle any errors that occur during data loading
+            st.error("An error occurred: Seems like the Query is incorrect. Please Review the query and Check the column names and try again.")
 #     def format_document_content(page_content):
 #         formatted_content = ""
 #         lines = page_content.split('\n')
