@@ -1,21 +1,26 @@
 import sys
 from snowflake.snowpark import Session
+from dotenv import load_dotenv
+import os
+
+# Load environment variables
+load_dotenv()
 
 # Connection parameters
 connection_parameters = {
-    "account": "reoyefh-pcb13308",
-    "user": "RYUK18",
-    "password": "Ryuk@1997",
-    "role": "Flight_ROLE",
-    "warehouse": "Flight_WH",
-    "database": "Flight_DB"
+    "account": os.getenv("SNOWFLAKE_ACCOUNT"),
+    "user": os.getenv("SNOWFLAKE_USER"),
+    "password": os.getenv("SNOWFLAKE_PASSWORD"),
+    "role": os.getenv("SNOWFLAKE_ROLE"),
+    "warehouse": os.getenv("SNOWFLAKE_WAREHOUSE"),
+    "database": os.getenv("SNOWFLAKE_DATABASE")
 }
 
 # Start a session
 with Session.builder.configs(connection_parameters).create() as session:
     # Check if the correct number of arguments are provided
     if len(sys.argv) < 3:
-        print("Usage: python testapp.py [departure_airport] [arrival_airport]")
+        print("Usage: python app.py [departure_airport] [arrival_airport]")
         sys.exit(1)
 
     # Assign command-line arguments to variables
@@ -41,8 +46,6 @@ with Session.builder.configs(connection_parameters).create() as session:
 
     # Call the UDTF with command-line arguments
     result = session.sql(f"SELECT * FROM TABLE(ANALYTICS.get_flight_details('{departure_airport_des}', '{arrival_airport_des}'))").collect()
-
-    # result = session.sql(f"SELECT * FROM TABLE(ANALYTICS.get_flight_details('BOS', 'DFW')) LIMIT 10").collect()
 
     for row in result:
         print(row)
