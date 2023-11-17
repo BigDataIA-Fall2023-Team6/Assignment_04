@@ -1,21 +1,4 @@
-/*-----------------------------------------------------------------------------
-Hands-On Lab: Data Engineering with Snowpark
-Script:       01_setup_snowflake.sql
-Author:       Jeremiah Hansen
-Last Updated: 1/1/2023
------------------------------------------------------------------------------*/
 
-
--- ----------------------------------------------------------------------------
--- Step #1: Accept Anaconda Terms & Conditions
--- ----------------------------------------------------------------------------
-
--- See Getting Started section in Third-Party Packages (https://docs.snowflake.com/en/developer-guide/udf/python/udf-python-packages.html#getting-started)
-
-
--- ----------------------------------------------------------------------------
--- Step #2: Create the account level objects
--- ----------------------------------------------------------------------------
 
 USE ROLE ACCOUNTADMIN;
 
@@ -54,9 +37,12 @@ CREATE OR REPLACE SCHEMA Flight_Emission;
 CREATE OR REPLACE SCHEMA Flight_Global_Connection;
 CREATE OR REPLACE SCHEMA Flight_Status;
 
-CREATE OR REPLACE SCHEMA STAGE_DATA;
+CREATE OR REPLACE SCHEMA Stage_Data;
 
-CREATE OR REPLACE SCHEMA ANALYTICS;
+CREATE OR REPLACE SCHEMA Flight_Analytics;
+
+CREATE STAGE my_udf_stage;
+
 
 
 

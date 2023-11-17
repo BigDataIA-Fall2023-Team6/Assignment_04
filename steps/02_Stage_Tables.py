@@ -15,7 +15,7 @@ def copy_table_between_schemas_flight_status(session):
 
     # Define destination database, schema, and table
     dest_database = "Flight_DB"
-    dest_schema = "FLIGHT_STATUS"
+    dest_schema = "Stage_Data"
     dest_table = "FLIGHT_STATUS_DATA"
 
     # Set the warehouse size to XLARGE
@@ -38,7 +38,7 @@ def copy_table_between_schemas_flight_emission(session):
 
     # Define destination database, schema, and table
     dest_database = "Flight_DB"
-    dest_schema = "FLIGHT_GLOBAL_CONNECTION"
+    dest_schema = "Stage_Data"
     dest_table = "FLIGHT_GLOBAL_CONNECTION_DATA"
 
     session.sql("ALTER WAREHOUSE Flight_WH SET WAREHOUSE_SIZE = XLARGE WAIT_FOR_COMPLETION = TRUE").collect()
@@ -60,7 +60,7 @@ def copy_table_between_schemas_flight_global_connect(session):
 
     # Define destination database, schema, and table
     dest_database = "Flight_DB"
-    dest_schema = "FLIGHT_EMISSION"
+    dest_schema = "Stage_Data"
     dest_table = "FLIGHT_EMISSION_DATA"
     
     session.sql("ALTER WAREHOUSE Flight_WH SET WAREHOUSE_SIZE = XLARGE WAIT_FOR_COMPLETION = TRUE").collect()
